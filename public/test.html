@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>🎉 Test Page - If you see this, the server is working!</h1>
+    <p>Server is running correctly!</p>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/jobs');
+                const jobs = await response.json();
+                document.getElementById('result').innerHTML = 
+                    '<h3>✅ API is working! Found ' + jobs.length + ' jobs</h3>' +
+                    '<pre>' + JSON.stringify(jobs, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<h3>❌ API Error: ' + error.message + '</h3>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Dashboard - LabourHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+        }
+        .job-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .job-card:hover {
+            transform: translateY(-5px);
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .recommendation-bar {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .match-badge {
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .skill-tag {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin: 2px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">🏗️ LabourHub</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">Welcome, <span id="userName">Worker</span>!</span>
+                <button class="btn btn-outline-light btn-sm me-2" onclick="showProfileModal()">👤 Profile</button>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1>👷 Worker Dashboard</h1>
+                    <p class="lead">Find your next job opportunity</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="stats-card d-inline-block me-3">
+                        <div class="stats-number" id="appliedJobs">0</div>
+                        <div>Jobs Applied</div>
+                    </div>
+                    <div class="stats-card d-inline-block">
+                        <div class="stats-number" id="userRating">0.0</div>
+                        <div>⭐ Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Recommendations Bar -->
+        <div class="recommendation-bar" id="recommendationSection">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4>🎯 Recommended Jobs For You</h4>
+                    <p class="mb-0" id="recommendationText">Based on your skills and preferences</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" onclick="loadRecommendations()">🔄 Refresh</button>
+                </div>
+            </div>
+            <div class="row mt-3" id="recommendationList">
+                <!-- Recommendations will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Available Jobs Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>💼 All Available Jobs</h3>
+                    <div>
+                        <button class="btn btn-outline-primary me-2" onclick="loadJobs()">Refresh Jobs</button>
+                        <button class="btn btn-primary" onclick="showProfileModal()">Update Skills</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs List -->
+        <div class="row" id="jobsList">
+            <!-- Jobs will be loaded here -->
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading jobs...</p>
+        </div>
+
+        <!-- No Jobs Message -->
+        <div id="noJobsMessage" class="text-center d-none">
+            <div class="alert alert-info">
+                <h4>📭 No jobs available</h4>
+                <p>There are no job listings at the moment. Check back later!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">👤 Your Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="profileContent">
+                        <!-- Profile content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">⭐ Leave a Review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm">
+                        <input type="hidden" id="reviewJobId" name="job_id">
+                        <input type="hidden" id="reviewToUserId" name="to_user_id">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="rating-stars">
+                                <span class="star" data-rating="1">☆</span>
+                                <span class="star" data-rating="2">☆</span>
+                                <span class="star" data-rating="3">☆</span>
+                                <span class="star" data-rating="4">☆</span>
+                                <span class="star" data-rating="5">☆</span>
+                            </div>
+                            <input type="hidden" id="reviewRating" name="rating" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comment</label>
+                            <textarea class="form-control" id="reviewComment" name="comment" rows="3" placeholder="Share your experience..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/worker-dashboard.js"></script>
+</body>
+</html>
